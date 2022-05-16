@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import config from "../config";
+import MMOGame from "../MMOGame"
 
 export default class MenuScene extends Phaser.Scene {
 	private statusText?:Phaser.GameObjects.Text
@@ -14,15 +15,22 @@ export default class MenuScene extends Phaser.Scene {
 
 	create() {
 		const logo = this.add.image(config.scale.width/2, 100, "logo")
-		this.statusText = this.add.text(config.scale.width/2, 250, "Press Space", {
+		this.statusText = this.add.text(config.scale.width/2, 250, "Connecting...", {
 			fontFamily: "Courier New",
 			fontSize: "64px",
 			align: "center"
 		}).setOrigin(0.5)
 
+		const game = this.game as MMOGame
+		game.connection.connect("ws://localhost:9000", () => {
+			this.statusText?.setText("Connected!")
+		})
+
 		this.input.keyboard.on("keydown", (e:KeyboardEvent) => {
 			if (e.code == "Space") {
-				this.scene.start("PlayScene")
+				if (game.connection.connected) {
+					this.scene.start("PlayScene")
+				}
 			}
 		})
 

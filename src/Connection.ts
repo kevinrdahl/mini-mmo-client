@@ -1,5 +1,11 @@
+import { PlainObject } from "./Utils/Interfaces"
+
+type Callback = (response:PlainObject) => void
+
 export default class Connection {
     socket?:WebSocket
+    private nextRequestId = 1
+    private callbacks:Map<number, Callback> = new Map()
 
     get connected():boolean {
         return this.socket?.readyState === WebSocket.OPEN
@@ -32,5 +38,21 @@ export default class Connection {
             if (this.socket.readyState == WebSocket.OPEN) this.socket.close()
             this.socket = undefined
         }
+    }
+
+    async request(type:string, params:PlainObject):Promise<PlainObject> {
+        params.type = type
+        params.id = this.nextRequestId++
+
+        return new Promise((resolve, reject) => {
+            this.callbacks.set(params.id, (response) => {
+                resolve(response)
+            })
+            try {
+                this.send(params)
+            } catch (e) {
+                reject(e)
+            }
+        })
     }
 }

@@ -29,8 +29,6 @@ export default class MenuScene extends Phaser.Scene {
 				username: "aaa",
 				password: "aaa"
 			})
-			console.log("do we get here??")
-			console.log(response)
 
 			response = await game.connection.request("accountLogin", {
 				username: "aaa",

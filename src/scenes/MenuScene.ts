@@ -22,8 +22,21 @@ export default class MenuScene extends Phaser.Scene {
 		}).setOrigin(0.5)
 
 		const game = this.game as MMOGame
-		game.connection.connect("ws://localhost:9000", () => {
+		game.connection.connect("ws://localhost:9000", async () => {
 			this.statusText?.setText("Connected!")
+
+			let response = await game.connection.request("accountCreate", {
+				username: "aaa",
+				password: "aaa"
+			})
+			console.log("do we get here??")
+			console.log(response)
+
+			response = await game.connection.request("accountLogin", {
+				username: "aaa",
+				password: "aaa",
+				worldId: 1
+			})
 		})
 
 		this.input.keyboard.on("keydown", (e:KeyboardEvent) => {

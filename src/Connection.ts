@@ -20,6 +20,20 @@ export default class Connection {
         })
         this.socket.addEventListener("message", (event) => {
             console.log(`RECV ${event.data}`)
+            try {
+                const json = JSON.parse(event.data)
+                if (typeof json === "object" && !Array.isArray(json)) {
+                    if (json.id) {
+                        const callback = this.callbacks.get(json.id)
+                        if (callback) {
+                            this.callbacks.delete(json.id)
+                            callback(json)
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e)
+            }
         })
         this.socket.addEventListener("close", () => {
             console.log("WebSocket closed")

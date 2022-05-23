@@ -35,6 +35,19 @@ export default class MenuScene extends Phaser.Scene {
 				password: "aaa",
 				worldId: 1
 			})
+
+			let characterId = -1
+
+			if (response.characters.length > 0) {
+				characterId = response.characters[0].id
+			} else {
+				response = await game.connection.request("characterCreate", {})
+				characterId = response.character.id
+			}
+
+			await game.connection.request("characterLogin", {
+				characterId:characterId
+			})
 		})
 
 		this.input.keyboard.on("keydown", (e:KeyboardEvent) => {

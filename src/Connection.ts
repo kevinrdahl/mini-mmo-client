@@ -5,7 +5,8 @@ type Callback = (response:PlainObject) => void
 export default class Connection {
     socket?:WebSocket
     private nextRequestId = 1
-    private callbacks:Map<number, Callback> = new Map()
+    private callbacks = new Map<number, Callback>()
+    private typeCallbacks = new Map<string, Callback[]>()
 
     get connected():boolean {
         return this.socket?.readyState === WebSocket.OPEN
@@ -19,7 +20,7 @@ export default class Connection {
             if (callback) callback()
         })
         this.socket.addEventListener("message", (event) => {
-            console.log(`RECV ${event.data}`)
+            //console.log(`RECV ${event.data}`)
             try {
                 const json = JSON.parse(event.data)
                 if (typeof json === "object" && !Array.isArray(json)) {
@@ -28,6 +29,11 @@ export default class Connection {
                         if (callback) {
                             this.callbacks.delete(json.id)
                             callback(json)
+                        }
+                    } else if (json.type) {
+                        const callbacks = this.typeCallbacks.get(json.type)
+                        if (callbacks) {
+                            for (const callback of callbacks) callback(json)
                         }
                     }
                 }
@@ -40,10 +46,19 @@ export default class Connection {
         })
     }
 
+    register(msgType:string, callback:Callback) {
+        let list = this.typeCallbacks.get(msgType)
+        if (!list) {
+            list = []
+            this.typeCallbacks.set(msgType, list)
+        }
+        list.push(callback)
+    }
+
     send(msg:string|object) {
         if (!this.socket || this.socket.readyState != WebSocket.OPEN) return
         if (typeof msg !== "string") msg = JSON.stringify(msg)
-        console.log(`SEND ${msg}`)
+        //console.log(`SEND ${msg}`)
         this.socket.send(msg)
     }
 

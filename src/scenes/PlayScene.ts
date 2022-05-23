@@ -1,5 +1,12 @@
+import { PlainObject } from "../Utils/Interfaces"
+import Unit from "./Unit"
+
 export default class PlayScene extends Phaser.Scene {
     testSprite?: Phaser.GameObjects.Sprite
+
+    roomData?:PlainObject
+    units = new Map<number, Unit>()
+    ownUnit?:Unit
 
     constructor() {
         super("PlayScene")
@@ -24,7 +31,11 @@ export default class PlayScene extends Phaser.Scene {
         })
     }
 
+    private _generated = false
     generateAnimations() {
+        if (this._generated) return
+        this._generated = true
+
         const toGenerate = {
             "walk":{
                 dirs:4,
@@ -71,11 +82,41 @@ export default class PlayScene extends Phaser.Scene {
 
     create() {
         this.generateAnimations()
-        this.testSprite = this.add.sprite(100, 100, "Human").setScale(3, 3)
-        this.testSprite.anims.play("Human/idle/right")
+
+        if (this.roomData) {
+            for (const unitDesc of this.roomData.room.units) {
+                const unit = Unit.fromDescription(unitDesc)
+                this.addUnit(unit)
+            }
+    
+            if (this.roomData.unitId) {
+                const unit = this.units.get(this.roomData.unitId)
+                if (unit) this.ownUnit = unit
+            }
+        }
+    }
+
+    init(data:PlainObject) {
+        this.roomData = data
+    }
+
+    addUnit(unit:Unit) {
+        this.units.set(unit.id, unit)
+        
+        unit.sprite = this.add.sprite(100, 100, "Human").setScale(3, 3)
+        unit.sprite.anims.play("Human/idle/right")
+        unit.sprite.setPosition(unit.position.x, unit.position.y)
+    }
+
+    removeUnit(unit:Unit) {
+        this.units.delete(unit.id)
+        if (unit.sprite) {
+            unit.sprite.destroy()
+        }
+        if (unit === this.ownUnit) this.ownUnit = undefined
     }
 
     update(time:number, delta:number) {
-
+        
     }
 }

@@ -4,6 +4,8 @@ import MMOGame from "../MMOGame"
 
 export default class MenuScene extends Phaser.Scene {
 	private statusText?:Phaser.GameObjects.Text
+	
+	public get mmoGame():MMOGame { return this.game as MMOGame }
 
 	constructor() {
 		super("MenuScene")
@@ -21,7 +23,7 @@ export default class MenuScene extends Phaser.Scene {
 			align: "center"
 		}).setOrigin(0.5)
 
-		const game = this.game as MMOGame
+		const game = this.mmoGame
 		game.connection.connect("ws://localhost:9000", async () => {
 			this.statusText?.setText("Connected!")
 
@@ -50,12 +52,8 @@ export default class MenuScene extends Phaser.Scene {
 			})
 		})
 
-		this.input.keyboard.on("keydown", (e:KeyboardEvent) => {
-			if (e.code == "Space") {
-				if (game.connection.connected) {
-					this.scene.start("PlayScene")
-				}
-			}
+		game.connection.register("setRoom", (msg) => {
+			if (msg.room) this.scene.start("PlayScene", msg)
 		})
 
 		/*this.tweens.add({
@@ -66,5 +64,9 @@ export default class MenuScene extends Phaser.Scene {
 			yoyo: true,
 			repeat: -1
 		});*/
+	}
+
+	update(time: number, delta: number): void {
+		//console.log("MENU")
 	}
 }

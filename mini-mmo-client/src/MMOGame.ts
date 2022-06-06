@@ -1,5 +1,6 @@
 import { Application } from "pixi.js";
-import MenuScene from "./Game/MenuScene";
+import Connection from "./Connection";
+import MenuScene from "./Game/Scenes/MenuScene";
 import Scene from "./Game/Scene";
 
 export default class MMOGame extends Application {
@@ -8,8 +9,10 @@ export default class MMOGame extends Application {
 
     gameWidth = MMOGame.baseWidth
     gameHeight = MMOGame.baseHeight
-    activeScene?:Scene
-    cachedScenes = new Map<string, Scene>()
+    connection = new Connection()
+
+    private activeScene?:Scene
+    private cachedScenes = new Map<string, Scene>()
 
     constructor() {
         super({
@@ -24,11 +27,15 @@ export default class MMOGame extends Application {
         this.gameWidth = gameWidth
         this.gameHeight = gameHeight
 
-        if (this.activeScene) this.activeScene.resize()
+        if (this.activeScene) this.activeScene.resize(gameWidth, gameHeight)
     }
 
     setScene(type?:new(game:MMOGame)=>Scene, activateParams?:any) {
         if (this.activeScene) {
+            for (const [msgType, callback] of this.activeScene.messageCallbacks.entries()) {
+                this.connection.unregister(msgType, callback)
+            }
+
             this.stage.removeChild(this.activeScene)
             this.activeScene.deactivate()
             this.activeScene = undefined
@@ -46,6 +53,11 @@ export default class MMOGame extends Application {
 
             this.activeScene = scene
             this.stage.addChild(scene)
+
+            for (const [msgType, callback] of this.activeScene.messageCallbacks.entries()) {
+                this.connection.register(msgType, callback)
+            }
+
             scene.activate(activateParams)
         }
     }

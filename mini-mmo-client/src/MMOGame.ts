@@ -2,6 +2,7 @@ import { Application } from "pixi.js";
 import Connection from "./Connection";
 import MenuScene from "./Game/Scenes/MenuScene";
 import Scene from "./Game/Scene";
+import KeyManager from "./KeyManager";
 
 export default class MMOGame extends Application {
     static baseWidth = 576
@@ -10,6 +11,7 @@ export default class MMOGame extends Application {
     gameWidth = MMOGame.baseWidth
     gameHeight = MMOGame.baseHeight
     connection = new Connection()
+    keys = new KeyManager(this)
 
     private activeScene?:Scene
     private cachedScenes = new Map<string, Scene>()
@@ -20,7 +22,13 @@ export default class MMOGame extends Application {
             "autoStart":true
         })
 
+        this.keys.init()
         this.setScene(MenuScene)
+
+        this.ticker.add(() => {
+            if (this.activeScene) this.activeScene.update(this.ticker.deltaMS / 1000)
+        })
+        this.ticker.start()
     }
 
     onResize(gameWidth:number, gameHeight:number) {

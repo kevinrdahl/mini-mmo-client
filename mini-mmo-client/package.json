@@ -13,6 +13,8 @@
     "test": "mocha"
   },
   "dependencies": {
+    "@pixi/math": "^6.4.2",
+    "@pixi/math-extras": "^6.4.2",
     "pixi.js": "^6.4.2"
   },
   "devDependencies": {
